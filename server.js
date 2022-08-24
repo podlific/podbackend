@@ -9,6 +9,8 @@ const PORT = process.env.PORT || 3500;
 const cors = require("cors");
 const server = http.createServer(app);
 const io = new Server(server);
+const dotenv = require("dotenv");
+dotenv.config();
 // middlewares
 DbConnect();
 app.use(
@@ -20,7 +22,7 @@ app.use(cookieParser());
 app.use(express.json());
 const corsOption = {
   credentials: true,
-  origin: ["https://podfrontend.vercel.app"],
+  origin: [process.env.BASE_URL],
   //access-control-allow-credentials:true
   optionSuccessStatus: 200,
 };
