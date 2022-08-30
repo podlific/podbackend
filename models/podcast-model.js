@@ -5,6 +5,7 @@ const podcastSchema = new Schema({
   image: String,
   sellerId: String,
   sellerUserName: String,
+  sellername: String,
   episodeName: String,
   podcastName: String,
   tags: [(type = String)],

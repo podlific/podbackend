@@ -51,4 +51,6 @@ router.post("/api/postbroadcastmessage", adminController.addbrocasttext);
 router.post("/api/addcsvdata", adminController.adddatausingcsv);
 router.post("/api/updateadmintags", adminController.updateadmintags);
 router.post("/api/sendinfoforuser", adminController.sendinfoforuser);
+router.post("/api/setnewpassword", adminController.setnewpassword);
+router.post("/resetpassword", adminController.resetpassword);
 module.exports = router;

@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use(express.json());
 const corsOption = {
   credentials: true,
-  origin: ["https://podfrontend.vercel.app"],
+  origin: [process.env.BASE_URL],
   //access-control-allow-credentials:true
   optionSuccessStatus: 200,
 };

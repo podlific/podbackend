@@ -1,6 +1,9 @@
 const adminModel = require("../models/admin-model");
 const sellerModel = require("../models/seller-model");
 const nodemailer = require("nodemailer");
+const resetTokenService = require("../services/reset-token-service");
+const { sendMail } = require("../services/mailling-service");
+const { findexistinguser } = require("../services/user-services");
 class AdminController {
   async getAdminData(req, res) {
     let count = await adminModel.collection.countDocuments();
@@ -106,29 +109,15 @@ class AdminController {
       res.status(400).send({ message: "Request not updated in database" });
       return;
     }
-    let transporter = nodemailer.createTransport({
-      host: "smtp-mail.outlook.com",
-      secureConnection: true,
-      starttls: {
-        enable: true,
-      },
-      port: 587,
-      tls: {
-        ciphers: "SSLv3",
-      },
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_ID,
-        pass: process.env.GMAIL_PASSWORD,
-      },
-    });
-    let info1 = await transporter.sendMail({
-      from: "tt2504669@gmail.com",
-      to: email,
-      subject: "Podilific Account Details",
-      text: `Hey , your Podilific account username is ${username} and password is ${password}. `,
-      html: `Hey , your Podilific account username is ${username} and password is ${password}. `,
-    });
+    let token = await resetTokenService.generateResetToken({ email: email });
+    try {
+      await resetTokenService.storeResetToken(token);
+    } catch (err) {
+      res.status(400).send({ message: "Request not updated in database" });
+      return;
+    }
+
+    let info1 = await sendMail(email, token, 1);
     if (!info1) {
       res.status(400).send({ message: "Email not sent " });
       return;
@@ -198,29 +187,16 @@ class AdminController {
         name: data?.name,
         phoneno: data?.phoneno,
       });
-      let transporter = nodemailer.createTransport({
-        host: "smtp-mail.outlook.com",
-        secureConnection: true,
-        starttls: {
-          enable: true,
-        },
-        port: 587,
-        tls: {
-          ciphers: "SSLv3",
-        },
-        service: "gmail",
-        auth: {
-          user: process.env.GMAIL_ID,
-          pass: process.env.GMAIL_PASSWORD,
-        },
+      let token = await resetTokenService.generateResetToken({
+        email: data.email,
       });
-      let info1 = await transporter.sendMail({
-        from: "tt2504669@gmail.com",
-        to: data.email,
-        subject: "Podilific Account Details",
-        text: `Hey , your Podilific account username is ${data.username} and password is ${password}. `,
-        html: `Hey , your Podilific account username is ${data.username} and password is ${password}. `,
-      });
+      try {
+        await resetTokenService.storeResetToken(token);
+      } catch (err) {
+        res.status(400).send({ message: "Request not updated in database" });
+        return;
+      }
+      await sendMail(data.email, token, 1);
       return user;
     };
     const fetchCSVdataInfo = async (data) => {
@@ -266,6 +242,82 @@ class AdminController {
       groups: info[0].targetgroups,
     };
     res.status(200).send(data);
+  }
+  async setnewpassword(req, res) {
+    const { token, password } = req.body;
+    let decoded;
+    try {
+      decoded = await resetTokenService.verfiyResetToken(token);
+    } catch (err) {
+      res.status(400).send({ message: "Unable to update password" });
+      return;
+    }
+    try {
+      let savedToken = await resetTokenService.findResetToken(token);
+      if (!savedToken) {
+        res
+          .status(400)
+          .send({ message: "Password already reset please try logging " });
+        return;
+      }
+    } catch (err) {
+      res
+        .status(400)
+        .send({ message: "Password already reset please try logging " });
+      return;
+    }
+    try {
+      let savedToken = await resetTokenService.removeResetToken(token);
+      if (!savedToken) {
+        res
+          .status(400)
+          .send({ message: "Password already reset please try logging " });
+        return;
+      }
+    } catch (err) {
+      res
+        .status(400)
+        .send({ message: "Password already reset please try logging " });
+      return;
+    }
+
+    let email = decoded.email;
+    try {
+      let user = await sellerModel.findOneAndUpdate(
+        { email: email },
+        {
+          password: password,
+        }
+      );
+    } catch (err) {
+      res.status(400).send({ message: "Unable to set Password , try again " });
+      return;
+    }
+
+    res.status(200).send({ message: "Password updated" });
+  }
+  async resetpassword(req, res) {
+    const { mail } = req.body;
+    let user = await findexistinguser(mail);
+    if (!user) {
+      res.status(400).send({ message: "User doesn't exist first signup" });
+      return;
+    }
+    let token = await resetTokenService.generateResetToken({ email: mail });
+    try {
+      await resetTokenService.storeResetToken(token);
+    } catch (err) {
+      res.status(400).send({ message: "Request not updated in database" });
+      return;
+    }
+
+    let info1 = await sendMail(mail, token, 2);
+    if (!info1) {
+      res.status(400).send({ message: "Email not sent " });
+      return;
+    }
+    res.status(200).send({ message: "Email sent sucessfully" });
+    return;
   }
 }
 module.exports = new AdminController();

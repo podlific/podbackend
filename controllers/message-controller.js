@@ -114,6 +114,7 @@ class MessageController {
         userId: id,
         userName: info.username,
         userType: info.usertype,
+        name: info.name,
       };
     };
 

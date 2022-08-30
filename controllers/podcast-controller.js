@@ -9,6 +9,7 @@ class PodcastConrtoller {
     let {
       sellerId: sellerId,
       sellerUserName: sellerUserName,
+      sellername: sellername,
       episodeName: episodeName,
       podcastName: podcastName,
       tags: tags,
@@ -44,6 +45,7 @@ class PodcastConrtoller {
       image: image,
       sellerId: sellerId,
       sellerUserName: sellerUserName,
+      sellername: sellername,
       episodeName: episodeName,
       podcastName: podcastName,
       tags: tags,
