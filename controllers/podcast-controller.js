@@ -172,11 +172,16 @@ class PodcastConrtoller {
       res.status(400).send({ message: "Select all fields" });
       return;
     }
-    let info1 = await podcastModel.findByIdAndUpdate(podcastid, {
-      $push: {
-        bookings: { date, time },
-      },
-    });
+    let info1;
+    try {
+      info1 = await podcastModel.findByIdAndUpdate(podcastid, {
+        $push: {
+          bookings: { date, time },
+        },
+      });
+    } catch (err) {
+      res.status(400).send({ message: "Unable to update request" });
+    }
     if (!info1) {
       res.status(400).send({ message: "Time not Updated" });
       return;
@@ -192,7 +197,7 @@ class PodcastConrtoller {
     }
     let info2 = await sellerModel.findById(buyerid);
     let request = info2.requests;
-    for (let i = 0; i < request.length; i++) {
+    for (let i = request.length - 1; i >= 0; i--) {
       if (
         request[i].sellerid === sellerid &&
         request[i].buyerid === buyerid &&
@@ -201,14 +206,25 @@ class PodcastConrtoller {
         request[i].confirmed = "true";
         request[i].date = date;
         request[i].time = time;
+        break;
       }
     }
-    info2 = await sellerModel.findByIdAndUpdate(buyerid, {
-      requests: request,
-    });
-    info2 = await sellerModel.findById(sellerid);
+    try {
+      info2 = await sellerModel.findByIdAndUpdate(buyerid, {
+        requests: request,
+      });
+    } catch (err) {
+      res.status(400).send({ message: "Unable to update request" });
+      return;
+    }
+    try {
+      info2 = await sellerModel.findById(sellerid);
+    } catch (err) {
+      res.status(400).send({ message: "Unable to update request" });
+      return;
+    }
     request = info2.requests;
-    for (let i = 0; i < request.length; i++) {
+    for (let i = request.length - 1; i >= 0; i--) {
       if (
         request[i].sellerid === sellerid &&
         request[i].buyerid === buyerid &&
@@ -217,19 +233,31 @@ class PodcastConrtoller {
         request[i].confirmed = "true";
         request[i].date = date;
         request[i].time = time;
+        break;
       }
     }
-    info2 = await sellerModel.findByIdAndUpdate(sellerid, {
-      requests: request,
-    });
+    try {
+      info2 = await sellerModel.findByIdAndUpdate(sellerid, {
+        requests: request,
+      });
+    } catch (err) {
+      res.status(400).send({ message: "Unable to update request" });
+      return;
+    }
 
     res.status(200).send({ message: "Cofirmed Times" });
   }
   async removeDeletedTime(req, res) {
     const { podcastid, date, time } = req.body;
-    let info = await podcastModel.findById(podcastid);
-    if (!info) {
-      res.status(400).send({ message: "No podcast found" });
+    let info;
+    try {
+      info = await podcastModel.findById(podcastid);
+      if (!info) {
+        res.status(400).send({ message: "No podcast found" });
+        return;
+      }
+    } catch (err) {
+      res.status(500).send({ message: "No podcast found" });
       return;
     }
     let arr = [];
@@ -239,7 +267,12 @@ class PodcastConrtoller {
         arr.push(booking[i]);
       }
     }
-    info = await podcastModel.findByIdAndUpdate(podcastid, { bookings: arr });
+    try {
+      info = await podcastModel.findByIdAndUpdate(podcastid, { bookings: arr });
+    } catch (err) {
+      res.status(400).send({ message: "Unable to update request" });
+      return;
+    }
     if (!info) {
       res.status(400).send({ message: "Time not deleted " });
       return;
