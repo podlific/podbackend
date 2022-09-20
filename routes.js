@@ -40,6 +40,7 @@ router.post(
 router.post("/api/updaterequest", podcastController.updatePodcastRequest);
 router.post("/api/updaterequestbyuser", podcastController.updatePodcastByUser);
 router.post("/api/removetimefrompodcast", podcastController.removeDeletedTime);
+router.post("/api/addnewpodcastbyuser", podcastController.addnewpodcastbyuser);
 
 /// Admin Routes
 router.post("/api/getadmininfo", adminController.getAdminData);
@@ -53,4 +54,8 @@ router.post("/api/updateadmintags", adminController.updateadmintags);
 router.post("/api/sendinfoforuser", adminController.sendinfoforuser);
 router.post("/api/setnewpassword", adminController.setnewpassword);
 router.post("/resetpassword", adminController.resetpassword);
+router.get("/api/gettagdataforadmin", adminController.gettagdata);
+router.post("/api/addnewtagbyadmin", adminController.addnewtag);
+router.post("/api/addmodifiedtag", adminController.addmodifiedtag);
+router.post("/api/deletetagbyadmin", adminController.deletetag);
 module.exports = router;

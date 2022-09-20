@@ -4,6 +4,8 @@ const nodemailer = require("nodemailer");
 const resetTokenService = require("../services/reset-token-service");
 const { sendMail } = require("../services/mailling-service");
 const { findexistinguser } = require("../services/user-services");
+const tagsModel = require("../models/tags-model");
+const podcastModel = require("../models/podcast-model");
 class AdminController {
   async getAdminData(req, res) {
     let count = await adminModel.collection.countDocuments();
@@ -21,6 +23,7 @@ class AdminController {
         tags: [],
         targetgroups: [],
         themes: [],
+        admintags: [],
       });
       if (info1) {
         res.status(200).send(info1);
@@ -75,6 +78,7 @@ class AdminController {
       max = 9000000;
     let password = Math.floor(Math.random() * min) + max;
     password = password.toString();
+    if ((!username, !usertype, !email, !companyname, !name, !phoneno)) return;
     let user = await sellerModel.create({
       username: username,
       usertype: usertype,
@@ -127,6 +131,7 @@ class AdminController {
   }
   async deleteuserrequest(req, res) {
     const { username } = req.body;
+    if (!username) return;
     let info = await adminModel.find({ uid: "#adminmodel123" });
     if (!info) {
       res
@@ -158,11 +163,16 @@ class AdminController {
       return;
     }
     let uid = "#adminmodel123";
-    info = await adminModel.findOneAndUpdate(uid, {
-      $push: { broadcastmessages: text },
-    });
-    if (info) {
-      res.status(200).send({ message: " Message Broadcasted Successfully" });
+    try {
+      info = await adminModel.findOneAndUpdate(uid, {
+        $push: { broadcastmessages: text },
+      });
+      if (info) {
+        res.status(200).send({ message: " Message Broadcasted Successfully" });
+        return;
+      }
+    } catch (err) {
+      res.status(400).send({ message: "Unable to Broadcast Message" });
       return;
     }
     res.status(400).send({ message: "Unable to Broadcast Message" });
@@ -178,15 +188,27 @@ class AdminController {
       if (!data.username || !data.usertype || !data.email) {
         return [];
       }
-      let user = await sellerModel.create({
-        username: data.username,
-        usertype: data.usertype,
-        password: password,
-        email: data?.email,
-        companyname: data?.companyname,
-        name: data?.name,
-        phoneno: data?.phoneno,
-      });
+      let userExist;
+      try {
+        userExist = await sellerModel.findOne({ username: data.username });
+      } catch (err) {}
+      if (userExist) {
+        return [];
+      }
+      let user;
+      try {
+        user = await sellerModel.create({
+          username: data.username,
+          usertype: data.usertype,
+          password: password,
+          email: data?.email,
+          companyname: data?.companyname,
+          name: data?.name,
+          phoneno: data?.phoneno,
+        });
+      } catch (err) {
+        return [];
+      }
       let token = await resetTokenService.generateResetToken({
         email: data.email,
       });
@@ -200,6 +222,10 @@ class AdminController {
       return user;
     };
     const fetchCSVdataInfo = async (data) => {
+      if (!data) {
+        res.status(400).send({ message: "Request not updated in database" });
+        return;
+      }
       const requests = data.map((ele) => {
         return makeNewAccounts(ele).then((a) => {
           return a;
@@ -207,7 +233,6 @@ class AdminController {
       });
       return await Promise.all(requests);
     };
-
     const uploadData = await fetchCSVdataInfo(csvData).then((a) => {
       return a;
     });
@@ -318,6 +343,89 @@ class AdminController {
     }
     res.status(200).send({ message: "Email sent sucessfully" });
     return;
+  }
+  async gettagdata(req, res) {
+    try {
+      let info = await tagsModel.find({});
+      return res.status(200).send(info);
+    } catch (err) {
+      res.status(400).send({ message: "Unable to get Tag data" });
+      return;
+    }
+  }
+  async addnewtag(req, res) {
+    let { tagname } = req.body;
+    let adminInfo;
+    try {
+      adminInfo = await adminModel.findOneAndUpdate(
+        { uid: "#adminmodel123" },
+        {
+          $push: { admintags: { tagname: tagname, tagcount: 0 } },
+        }
+      );
+      return res.status(200).send({ message: "New tag added successfully" });
+    } catch (err) {
+      return res.status(400).send({ message: "Unable to add new tag" });
+    }
+    return;
+  }
+  async addmodifiedtag(req, res) {
+    let { oldtagname, newtagname, podcastid } = req.body;
+    let adminInfo, podcastInfo, newpodcastinfo;
+    try {
+      podcastInfo = await podcastModel.findOne(podcastid);
+      let oldtag = podcastInfo.tags;
+      let newtag = [];
+      for (let i = 0; i < oldtag.length; i++) {
+        if (oldtag[i] !== oldtagname) {
+          newtag.push(oldtag[i]);
+        }
+      }
+      newtag.push(newtagname);
+      newpodcastinfo = await podcastModel.findByIdAndUpdate(podcastid, {
+        tags: newtag,
+      });
+    } catch (err) {
+      return res
+        .status(400)
+        .send({ message: "Unable to tag in user section , try again" });
+    }
+    try {
+      adminInfo = await adminModel.findOneAndUpdate(
+        { uid: "#adminmodel123" },
+        {
+          $push: { admintags: { tagname: newtagname, tagcount: 0 } },
+        }
+      );
+      return res.status(200).send({ message: "New tag added successfully" });
+    } catch (err) {
+      return res
+        .status(400)
+        .send({ message: "Unable to add new tag in admin , try again" });
+    }
+    return;
+  }
+  async deletetag(req, res) {
+    let { tagname, podcastid } = req.body;
+    let podcastInfo, newpodcastinfo;
+    try {
+      podcastInfo = await podcastModel.findOne(podcastid);
+      let oldtag = podcastInfo.tags;
+      let newtag = [];
+      for (let i = 0; i < oldtag.length; i++) {
+        if (oldtag[i] !== tagname) {
+          newtag.push(oldtag[i]);
+        }
+      }
+      newpodcastinfo = await podcastModel.findByIdAndUpdate(podcastid, {
+        tags: newtag,
+      });
+      return res.status(200).send({ message: "Tag removed successfully" });
+    } catch (err) {
+      return res
+        .status(400)
+        .send({ message: "Unable to tag in user section , try again" });
+    }
   }
 }
 module.exports = new AdminController();

@@ -13,11 +13,17 @@ const adminSchema = new Schema({
       companyname: { type: String },
       description: { type: String },
     },
+    {
+      timestamps: true,
+      toJSON: { getters: true },
+    },
   ],
   broadcastmessages: [{ type: String }],
   tags: [{ type: String }],
   targetgroups: [{ type: String }],
   themes: [{ type: String }],
+  admintags: [{ tagname: { type: String }, tagcount: { type: Number } }],
+  requestedtags: [{ tagname: { type: String }, podcastid: { type: String } }],
 });
 
 module.exports = mongoose.model("ADMIN_MODEL", adminSchema, "admin-model");

@@ -1,12 +1,14 @@
 const podcastModel = require("../models/podcast-model");
 const sellerModel = require("../models/seller-model");
 const tagsModel = require("../models/tags-model");
+const adminModel = require("../models/admin-model");
 
 class PodcastConrtoller {
   async addNewPodcast(req, res) {
-    let image;
+    // let image;
 
     let {
+      image: image,
       sellerId: sellerId,
       sellerUserName: sellerUserName,
       sellername: sellername,
@@ -22,9 +24,9 @@ class PodcastConrtoller {
       averageLTR: averageLTR,
       releaseFrequency: releaseFrequency,
     } = req.body;
-    if (req.file) {
-      image = req.file.buffer.toString("base64");
-    }
+    // if (req.file) {
+    //   image = req.file.buffer.toString("base64");
+    // }
     tags = JSON.parse(tags);
     themes = JSON.parse(themes);
     groups = JSON.parse(groups);
@@ -278,6 +280,90 @@ class PodcastConrtoller {
       return;
     }
     res.status(200).send(info);
+    return;
+  }
+  async addnewpodcastbyuser(req, res) {
+    let {
+      image: image,
+      sellerId: sellerId,
+      sellerUserName: sellerUserName,
+      sellername: sellername,
+      episodeName: episodeName,
+      podcastName: podcastName,
+      tags: tags,
+      requestedtags: requestedtags,
+      averageListener: averageListener,
+      description: description,
+      averageEpisodeLength: averageEpisodeLength,
+      averageLTR: averageLTR,
+      releaseFrequency: releaseFrequency,
+    } = req.body;
+    let podcast;
+    try {
+      podcast = await podcastModel.create({
+        image: image,
+        sellerId: sellerId,
+        sellerUserName: sellerUserName,
+        sellername: sellername,
+        episodeName: episodeName,
+        podcastName: podcastName,
+        tags: tags,
+        requestedtags: requestedtags,
+        description: description,
+        averageListener: averageListener,
+        averageEpisodeLength: averageEpisodeLength,
+        averageLTR: averageLTR,
+        releaseFrequency: releaseFrequency,
+      });
+    } catch (err) {
+      res.status(400).send({ message: "Error 400 Podcast not Added" });
+      return;
+    }
+    let id = podcast._id.toString();
+    let seller;
+    try {
+      seller = await sellerModel.findByIdAndUpdate(sellerId, {
+        $push: { podcast: id },
+      });
+    } catch (err) {
+      return res.status(400).send({ message: "Unable to add podcast seller" });
+    }
+    let uid = "#adminmodel123";
+    let adminInfo, adminInfo1;
+    let requestedTagsWithId = [];
+    for (let i = 0; i < requestedtags.length; i++) {
+      requestedTagsWithId.push({ tagname: requestedtags[i], podcastid: id });
+    }
+    let oldtags = new Map();
+    for (let i = 0; i < tags.length; i++) {
+      let curr = 0;
+      oldtags.set(tags[i], curr + 1);
+    }
+    try {
+      adminInfo = await adminModel.find({ uid: "#adminmodel123" });
+      let admintagscount = adminInfo[0].admintags;
+      for (let i = 0; i < admintagscount.length; i++) {
+        if (oldtags.has(admintagscount[i].tagname)) {
+          admintagscount[i].tagcount++;
+        }
+      }
+      adminInfo1 = await adminModel.findOneAndUpdate(
+        { uid: "#adminmodel123" },
+        {
+          admintags: admintagscount,
+          $push: { requestedtags: requestedTagsWithId },
+        }
+      );
+
+      return res
+        .status(200)
+        .send({ message: "New Podcast added Successfully" });
+    } catch (err) {
+      console.log(err);
+      return res
+        .status(400)
+        .send({ message: "Unable to add request for new podcast" });
+    }
     return;
   }
 }
