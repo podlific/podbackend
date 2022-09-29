@@ -284,20 +284,21 @@ class PodcastConrtoller {
   }
   async addnewpodcastbyuser(req, res) {
     let {
-      image: image,
-      sellerId: sellerId,
-      sellerUserName: sellerUserName,
-      sellername: sellername,
-      episodeName: episodeName,
-      podcastName: podcastName,
-      tags: tags,
-      requestedtags: requestedtags,
-      averageListener: averageListener,
-      description: description,
-      averageEpisodeLength: averageEpisodeLength,
-      averageLTR: averageLTR,
-      releaseFrequency: releaseFrequency,
+      image,
+      sellerId,
+      sellerUserName,
+      sellername,
+      episodeName,
+      podcastName,
+      tags,
+      requestedtags,
+      averageListener,
+      description,
+      averageEpisodeLength,
+      averageLTR,
+      releaseFrequency,
     } = req.body;
+    // console.log(req.body);
     let podcast;
     try {
       podcast = await podcastModel.create({
@@ -332,7 +333,7 @@ class PodcastConrtoller {
     let adminInfo, adminInfo1;
     let requestedTagsWithId = [];
     for (let i = 0; i < requestedtags.length; i++) {
-      requestedTagsWithId.push({ tagname: requestedtags[i], podcastid: id });
+      requestedTagsWithId.push({ tag: requestedtags[i], podcastID: id });
     }
     let oldtags = new Map();
     for (let i = 0; i < tags.length; i++) {
@@ -340,8 +341,8 @@ class PodcastConrtoller {
       oldtags.set(tags[i], curr + 1);
     }
     try {
-      adminInfo = await adminModel.find({ uid: "#adminmodel123" });
-      let admintagscount = adminInfo[0].admintags;
+      adminInfo = await adminModel.findOne({ uid: "#adminmodel123" });
+      let admintagscount = adminInfo.admintags;
       for (let i = 0; i < admintagscount.length; i++) {
         if (oldtags.has(admintagscount[i].tagname)) {
           admintagscount[i].tagcount++;
@@ -365,6 +366,24 @@ class PodcastConrtoller {
         .send({ message: "Unable to add request for new podcast" });
     }
     return;
+  }
+  async testroute(req, res) {
+    const { requestedTags } = req.body;
+    let adminInfo;
+    console.log(requestedTags);
+    try {
+      adminInfo = await adminModel.findOneAndUpdate(
+        { uid: "#adminmodel123" },
+        {
+          $push: { requestedtags: requestedTags },
+        }
+      );
+      res.status(200).send(adminInfo);
+    } catch (err) {
+      return res
+        .status(400)
+        .send({ message: "Unable to update requested tags" });
+    }
   }
 }
 module.exports = new PodcastConrtoller();

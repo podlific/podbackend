@@ -58,4 +58,6 @@ router.get("/api/gettagdataforadmin", adminController.gettagdata);
 router.post("/api/addnewtagbyadmin", adminController.addnewtag);
 router.post("/api/addmodifiedtag", adminController.addmodifiedtag);
 router.post("/api/deletetagbyadmin", adminController.deletetag);
+router.post("/api/addnewtagbyuser", adminController.addnewtagforuser);
+router.post("/api/testtagroute", podcastController.testroute);
 module.exports = router;
