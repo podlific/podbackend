@@ -24,6 +24,7 @@ class AdminController {
         targetgroups: [],
         themes: [],
         admintags: [],
+        requestedtags: [],
       });
       if (info1) {
         res.status(200).send(info1);
@@ -355,6 +356,7 @@ class AdminController {
   }
   async addnewtag(req, res) {
     let { tagname } = req.body;
+    // console.log(req.body);
     let adminInfo;
     try {
       adminInfo = await adminModel.findOneAndUpdate(
@@ -369,21 +371,54 @@ class AdminController {
     }
     return;
   }
+  async addnewtagforuser(req, res) {
+    let { tagname, podcastid } = req.body;
+    let podcastInfo;
+    try {
+      podcastInfo = await podcastModel.findByIdAndUpdate(podcastid, {
+        $push: { tags: tagname },
+      });
+      // return res.status(200).send({ message: "New tag added successfully" });
+    } catch (err) {
+      return res
+        .status(400)
+        .send({ message: "Unable to tag in user section , try again" });
+    }
+    let adminInfo;
+    try {
+      adminInfo = await adminModel.findOne({ uid: "#adminmodel123" });
+      // console.log(adminInfo);
+      let requestedtags = adminInfo.requestedtags;
+      let newrequestedtags = [];
+      for (let i = 0; i < requestedtags.length; i++) {
+        if (
+          requestedtags[i].tag === tagname &&
+          requestedtags[i].podcastID === podcastid
+        ) {
+        } else {
+          newrequestedtags.push(requestedtags[i]);
+        }
+      }
+      adminInfo = await adminModel.findOneAndUpdate(
+        { uid: "#adminmodel123" },
+        {
+          $push: { admintags: { tagname: tagname, tagcount: 0 } },
+          requestedtags: newrequestedtags,
+        }
+      );
+      return res.status(200).send({ message: " Tags updated successfully" });
+    } catch (err) {
+      console.log(err);
+      return res.status(400).send({ message: "Unable to update tags" });
+    }
+    return;
+  }
   async addmodifiedtag(req, res) {
     let { oldtagname, newtagname, podcastid } = req.body;
     let adminInfo, podcastInfo, newpodcastinfo;
     try {
-      podcastInfo = await podcastModel.findOne(podcastid);
-      let oldtag = podcastInfo.tags;
-      let newtag = [];
-      for (let i = 0; i < oldtag.length; i++) {
-        if (oldtag[i] !== oldtagname) {
-          newtag.push(oldtag[i]);
-        }
-      }
-      newtag.push(newtagname);
       newpodcastinfo = await podcastModel.findByIdAndUpdate(podcastid, {
-        tags: newtag,
+        $push: { tags: newtagname },
       });
     } catch (err) {
       return res
@@ -391,10 +426,23 @@ class AdminController {
         .send({ message: "Unable to tag in user section , try again" });
     }
     try {
+      adminInfo = await adminModel.findOne({ uid: "#adminmodel123" });
+      let requestedtags = adminInfo.requestedtags;
+      let newrequestedtags = [];
+      for (let i = 0; i < requestedtags.length; i++) {
+        if (
+          requestedtags[i].podcastID === podcastid &&
+          requestedtags[i].tag === oldtagname
+        ) {
+        } else {
+          newrequestedtags.push(requestedtags[i]);
+        }
+      }
       adminInfo = await adminModel.findOneAndUpdate(
         { uid: "#adminmodel123" },
         {
           $push: { admintags: { tagname: newtagname, tagcount: 0 } },
+          requestedtags: newrequestedtags,
         }
       );
       return res.status(200).send({ message: "New tag added successfully" });
@@ -408,23 +456,31 @@ class AdminController {
   async deletetag(req, res) {
     let { tagname, podcastid } = req.body;
     let podcastInfo, newpodcastinfo;
+    let adminInfo;
     try {
-      podcastInfo = await podcastModel.findOne(podcastid);
-      let oldtag = podcastInfo.tags;
-      let newtag = [];
-      for (let i = 0; i < oldtag.length; i++) {
-        if (oldtag[i] !== tagname) {
-          newtag.push(oldtag[i]);
+      adminInfo = await adminModel.findOne({ uid: "#adminmodel123" });
+      let requestedtags = adminInfo.requestedtags;
+      let newrequestedtags = [];
+      for (let i = 0; i < requestedtags.length; i++) {
+        if (
+          requestedtags[i].podcastID === podcastid &&
+          requestedtags[i].tag === tagname
+        ) {
+        } else {
+          newrequestedtags.push(requestedtags[i]);
         }
       }
-      newpodcastinfo = await podcastModel.findByIdAndUpdate(podcastid, {
-        tags: newtag,
-      });
-      return res.status(200).send({ message: "Tag removed successfully" });
+      adminInfo = await adminModel.findOneAndUpdate(
+        { uid: "#adminmodel123" },
+        {
+          requestedtags: newrequestedtags,
+        }
+      );
+      return res.status(200).send({ message: " Tag removed successfully" });
     } catch (err) {
       return res
         .status(400)
-        .send({ message: "Unable to tag in user section , try again" });
+        .send({ message: "Unable to get admin data , try again" });
     }
   }
 }

@@ -340,8 +340,8 @@ class PodcastConrtoller {
       oldtags.set(tags[i], curr + 1);
     }
     try {
-      adminInfo = await adminModel.find({ uid: "#adminmodel123" });
-      let admintagscount = adminInfo[0].admintags;
+      adminInfo = await adminModel.findOne({ uid: "#adminmodel123" });
+      let admintagscount = adminInfo.admintags;
       for (let i = 0; i < admintagscount.length; i++) {
         if (oldtags.has(admintagscount[i].tagname)) {
           admintagscount[i].tagcount++;
