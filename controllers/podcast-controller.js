@@ -374,7 +374,7 @@ class PodcastConrtoller {
   async testroute(req, res) {
     const { requestedTags } = req.body;
     let adminInfo;
-    console.log(requestedTags);
+    // console.log(requestedTags);
     try {
       adminInfo = await adminModel.findOneAndUpdate(
         { uid: "#adminmodel123" },

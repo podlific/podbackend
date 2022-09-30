@@ -17,7 +17,7 @@ class ResetToken {
     try {
       await resetTokenModel.create({ token });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   }
   async findResetToken(token) {
