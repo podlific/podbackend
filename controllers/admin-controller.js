@@ -255,17 +255,17 @@ class AdminController {
   }
   async sendinfoforuser(req, res) {
     const { uid } = req.body;
-    let info = await adminModel.find({ uid: "#adminmodel123" });
+    let info = await adminModel.findOne({ uid: "#adminmodel123" });
     if (!info) {
       res.status(400).send({ message: "Unable to get Data" });
     }
-    let len = info[0].broadcastmessages.length;
-    let broadcastmessages = info[0].broadcastmessages[len - 1];
+    let len = info.broadcastmessages.length;
+    let broadcastmessages = info.broadcastmessages[len - 1];
     let data = {
       broadcastmessages: broadcastmessages,
-      tags: info[0].tags,
-      themes: info[0].themes,
-      groups: info[0].targetgroups,
+      tags: info.admintags,
+      themes: info.themes,
+      groups: info.targetgroups,
     };
     res.status(200).send(data);
   }
@@ -402,7 +402,7 @@ class AdminController {
       adminInfo = await adminModel.findOneAndUpdate(
         { uid: "#adminmodel123" },
         {
-          $push: { admintags: { tagname: tagname, tagcount: 0 } },
+          $push: { admintags: { tagname: tagname, tagcount: 1 } },
           requestedtags: newrequestedtags,
         }
       );
@@ -441,7 +441,7 @@ class AdminController {
       adminInfo = await adminModel.findOneAndUpdate(
         { uid: "#adminmodel123" },
         {
-          $push: { admintags: { tagname: newtagname, tagcount: 0 } },
+          $push: { admintags: { tagname: newtagname, tagcount: 1 } },
           requestedtags: newrequestedtags,
         }
       );
