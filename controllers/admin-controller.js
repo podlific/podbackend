@@ -415,7 +415,7 @@ class AdminController {
     return;
   }
   async addmodifiedtag(req, res) {
-    let { oldtagname, newtagname, podcastid } = req.body;
+    let { oldtagname, newtagname, podcastid, sellerusername } = req.body;
     let adminInfo, podcastInfo, newpodcastinfo;
     try {
       newpodcastinfo = await podcastModel.findByIdAndUpdate(podcastid, {
