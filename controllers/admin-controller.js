@@ -70,6 +70,9 @@ class AdminController {
       res.status(400).send({ message: "Unable to get data " });
       return;
     }
+    for (let i = 0; i < info.length; i++) {
+      info[i].messages = [];
+    }
     res.status(200).send(info);
     return;
   }
@@ -414,7 +417,7 @@ class AdminController {
     return;
   }
   async addmodifiedtag(req, res) {
-    let { oldtagname, newtagname, podcastid } = req.body;
+    let { oldtagname, newtagname, podcastid, sellerusername } = req.body;
     let adminInfo, podcastInfo, newpodcastinfo;
     try {
       newpodcastinfo = await podcastModel.findByIdAndUpdate(podcastid, {

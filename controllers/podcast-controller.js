@@ -333,7 +333,11 @@ class PodcastConrtoller {
     let adminInfo, adminInfo1;
     let requestedTagsWithId = [];
     for (let i = 0; i < requestedtags.length; i++) {
-      requestedTagsWithId.push({ tag: requestedtags[i], podcastID: id });
+      requestedTagsWithId.push({
+        sellername: sellername,
+        tag: requestedtags[i],
+        podcastID: id,
+      });
     }
     let oldtags = new Map();
     for (let i = 0; i < tags.length; i++) {
@@ -370,7 +374,7 @@ class PodcastConrtoller {
   async testroute(req, res) {
     const { requestedTags } = req.body;
     let adminInfo;
-    console.log(requestedTags);
+    // console.log(requestedTags);
     try {
       adminInfo = await adminModel.findOneAndUpdate(
         { uid: "#adminmodel123" },

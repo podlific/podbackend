@@ -22,6 +22,7 @@ router.post(
   "/api/updatepodcastrequest",
   messageController.updatepodcastrequest
 );
+router.post("/api/deleterequest", messageController.deleterequest);
 //// Podcast Route
 router.post(
   "/api/addnewpodcast",

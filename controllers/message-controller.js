@@ -282,5 +282,64 @@ class MessageController {
       return;
     }
   }
+  async deleterequest(req, res) {
+    let { sellerid, buyerid, date, time, podcastid, podcastname } = req.body;
+    let buyerRequestArray = [],
+      sellerRequestArray = [];
+    let buyerData, sellerData;
+    try {
+      buyerData = await sellerModel.findById(buyerid);
+      let data = buyerData.requests;
+      for (let i = 0; i < data.length; i++) {
+        if (
+          data[i].sellerid === sellerid &&
+          data[i].buyerid === buyerid &&
+          data[i].date === date &&
+          data[i].time === time &&
+          data[i].podcastid === podcastid &&
+          data[i].podcastname === podcastname
+        ) {
+        } else {
+          buyerRequestArray.push(data[i]);
+        }
+      }
+    } catch (err) {
+      return res.status(400).send({ message: "Unable to update request" });
+    }
+    try {
+      sellerData = await sellerModel.findById(sellerid);
+      let data = sellerData.requests;
+      for (let i = 0; i < data.length; i++) {
+        if (
+          data[i].sellerid === sellerid &&
+          data[i].buyerid === buyerid &&
+          data[i].date === date &&
+          data[i].time === time &&
+          data[i].podcastid === podcastid &&
+          data[i].podcastname === podcastname
+        ) {
+        } else {
+          sellerRequestArray.push(data[i]);
+        }
+      }
+    } catch (err) {
+      return res.status(400).send({ message: "Unable to update request" });
+    }
+    try {
+      buyerData = await sellerModel.findByIdAndUpdate(buyerid, {
+        requests: buyerRequestArray,
+      });
+    } catch (err) {
+      return res.status(400).send({ message: "Unable to update request" });
+    }
+    try {
+      sellerData = await sellerModel.findByIdAndUpdate(sellerid, {
+        requests: sellerRequestArray,
+      });
+    } catch (err) {
+      return res.status(400).send({ message: "Unable to update request" });
+    }
+    return res.status(200).send({ message: "Request updated successfully" });
+  }
 }
 module.exports = new MessageController();
