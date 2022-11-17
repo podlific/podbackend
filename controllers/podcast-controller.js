@@ -284,6 +284,7 @@ class PodcastConrtoller {
   }
   async addnewpodcastbyuser(req, res) {
     let {
+      oldid,
       image,
       sellerId,
       sellerUserName,
@@ -298,8 +299,16 @@ class PodcastConrtoller {
       averageLTR,
       releaseFrequency,
     } = req.body;
-    // console.log(req.body);
+    // //console.log(req.body);
     let podcast;
+    console.log(oldid);
+    if (oldid !== null) {
+      try {
+        await podcastModel.findByIdAndDelete({ _id: oldid });
+      } catch (err) {
+        res.status(400).send({ message: "unable to delete old podcast" });
+      }
+    }
     try {
       podcast = await podcastModel.create({
         image: image,
@@ -364,7 +373,7 @@ class PodcastConrtoller {
         .status(200)
         .send({ message: "New Podcast added Successfully" });
     } catch (err) {
-      console.log(err);
+      // //console.log(err);
       return res
         .status(400)
         .send({ message: "Unable to add request for new podcast" });
@@ -374,7 +383,7 @@ class PodcastConrtoller {
   async testroute(req, res) {
     const { requestedTags } = req.body;
     let adminInfo;
-    // console.log(requestedTags);
+    // //console.log(requestedTags);
     try {
       adminInfo = await adminModel.findOneAndUpdate(
         { uid: "#adminmodel123" },

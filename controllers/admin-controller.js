@@ -359,7 +359,7 @@ class AdminController {
   }
   async addnewtag(req, res) {
     let { tagname } = req.body;
-    // console.log(req.body);
+    // //console.log(req.body);
     let adminInfo;
     try {
       adminInfo = await adminModel.findOneAndUpdate(
@@ -390,7 +390,7 @@ class AdminController {
     let adminInfo;
     try {
       adminInfo = await adminModel.findOne({ uid: "#adminmodel123" });
-      // console.log(adminInfo);
+      // //console.log(adminInfo);
       let requestedtags = adminInfo.requestedtags;
       let newrequestedtags = [];
       for (let i = 0; i < requestedtags.length; i++) {
@@ -411,7 +411,7 @@ class AdminController {
       );
       return res.status(200).send({ message: " Tags updated successfully" });
     } catch (err) {
-      console.log(err);
+      // //console.log(err);
       return res.status(400).send({ message: "Unable to update tags" });
     }
     return;
